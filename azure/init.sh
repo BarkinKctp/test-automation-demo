@@ -17,7 +17,11 @@ firewall-cmd --add-port=3456/tcp || true
 # fail in a pipeline if any of the commands fails
 set -o pipefail
 
-sudo rm -r /var/cache/dnf
+rm -r /var/cache/dnf
+
+# install & update ca certificates
+yum install -y ca-certificates
+update-ca-trust -f
 
 # install epel repo
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
@@ -30,10 +34,6 @@ yum install -y screen htop
 
 # install tmux
 yum install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/tmux-3.2a-4.el9.x86_64.rpm
-
-# install & update ca certificates
-yum install -y ca-certificates
-update-ca-trust -f
 
 # install python3 package manager pip
 yum install -y python3-pip
