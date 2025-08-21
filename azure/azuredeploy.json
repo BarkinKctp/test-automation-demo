@@ -411,14 +411,6 @@
                     ]
                 }
             },
-            "dependsOn": [
-                "virtualMachineLoop",
-                "nicLoop",
-                "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), copyIndex()))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAcctName'))]"
-            ],
             "copy": {
                 "name": "extensionScriptLoop",
                 "count": "[variables('numberOfInstances')]"
