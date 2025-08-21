@@ -17,7 +17,7 @@ firewall-cmd --add-port=3456/tcp || true
 # fail in a pipeline if any of the commands fails
 set -o pipefail
 
-yum makecache
+yum update ca-certificates -y
 
 # install epel repo
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
