@@ -17,24 +17,26 @@ firewall-cmd --add-port=3456/tcp || true
 # fail in a pipeline if any of the commands fails
 set -o pipefail
 
+sudo rm -r /var/cache/dnf
+
 # install epel repo
-yum -y --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 
 # install git to clone the repository
-yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y git
+yum install -y git
 
 # install other utility tools
-yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y screen htop
+yum install -y screen htop
 
 # install tmux
-yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/tmux-3.2a-4.el9.x86_64.rpm
+yum install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/tmux-3.2a-4.el9.x86_64.rpm
 
 # install & update ca certificates
-yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y ca-certificates
+yum install -y ca-certificates
 update-ca-trust -f
 
 # install python3 package manager pip
-yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y python3-pip
+yum install -y python3-pip
 
 # this is the username in our instances
 TARGET_USER=pguser
@@ -68,7 +70,7 @@ mkfs -t ext4 ${DEV}
 mv /home/${TARGET_USER}/ /tmp/home_copy
 mkdir -p /home/${TARGET_USER}
 mount -o barrier=0 ${DEV} /home/${TARGET_USER}/
-yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y rsync
+yum install -y rsync
 rsync -aXS /tmp/home_copy/. /home/${TARGET_USER}/.
 
 
@@ -81,7 +83,7 @@ echo 'Port 3456' >> /etc/ssh/sshd_config
 echo 'Port 22' >> /etc/ssh/sshd_config
 
 # necessary for semanage, VMs have secure linux
-yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y policycoreutils-python-utils
+yum install -y policycoreutils-python-utils
 # we need to enable the new port from semanage
 semanage port -a -t ssh_port_t -p tcp 3456
 
@@ -129,8 +131,8 @@ EOSU
 
 find_private_ips() {
   rpm --import https://packages.microsoft.com/keys/microsoft.asc
-  yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm
-  yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y azure-cli
+  yum install -y https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm
+  yum install -y azure-cli
 
   mkdir /home/log
   chmod og+rwx /home/log
@@ -144,7 +146,7 @@ find_private_ips() {
     echo $i >>$LOGS
   done
 
-  yum --disablerepo rhel-9-for-x86_64-supplementary-rhui-rpms,codeready-builder-for-rhel-9-x86_64-rhui-rpms install -y hostname
+  yum install -y hostname
   hostname -I >/home/log/ip_address
 
   export NODE_ID=$1
