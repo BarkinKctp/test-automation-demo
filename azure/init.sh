@@ -7,6 +7,14 @@ set -e
 # echo commands
 set -x
 
+# print args
+echo "arg1 = $1"
+echo "arg2 = $2"
+echo "arg3 = $3"
+echo "arg4 = $4"
+echo "arg5 = $5"
+echo "arg6 = $6"
+
 # in redhat we need to enable default port for postgres
 # We don't exit on this command because if we are on centos, the firewall
 # might not be active, but this also enables switching to redhat easily.
@@ -16,12 +24,6 @@ firewall-cmd --add-port=3456/tcp || true
 
 # fail in a pipeline if any of the commands fails
 set -o pipefail
-
-rm -r /var/cache/dnf
-
-# install & update ca certificates
-yum install -y ca-certificates
-update-ca-trust -f
 
 # install epel repo
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
@@ -34,6 +36,10 @@ yum install -y screen htop
 
 # install tmux
 yum install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/tmux-3.2a-4.el9.x86_64.rpm
+
+# install & update ca certificates
+yum install -y ca-certificates
+update-ca-trust -f
 
 # install python3 package manager pip
 yum install -y python3-pip
