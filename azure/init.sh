@@ -10,31 +10,22 @@ set -x
 # in redhat we need to enable default port for postgres
 # We don't exit on this command because if we are on centos, the firewall
 # might not be active, but this also enables switching to redhat easily.
-firewall-cmd --add-port=5432/tcp || true
-firewall-cmd --add-port=3456/tcp || true
-
+apt-get update
+apt-get install -y ufw
+ufw allow 5432/tcp || true
+ufw allow 3456/tcp || true
+sudo ufw --force enable
 
 # fail in a pipeline if any of the commands fails
 set -o pipefail
 
 # install epel repo
-yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+apt-get update
 
-# install git to clone the repository
-yum install -y git
+# install required packages
+apt-get install -y git screen htop tmux ca-certificates python3-pip rsync
 
-# install other utility tools
-yum install -y screen htop
-
-# install tmux
-yum install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/tmux-3.2a-4.el9.x86_64.rpm
-
-# install & update ca certificates
-yum install -y ca-certificates
-update-ca-trust -f
-
-# install python3 package manager pip
-yum install -y python3-pip
+update-ca-certificates
 
 # this is the username in our instances
 TARGET_USER=pguser
@@ -68,7 +59,8 @@ mkfs -t ext4 ${DEV}
 mv /home/${TARGET_USER}/ /tmp/home_copy
 mkdir -p /home/${TARGET_USER}
 mount -o barrier=0 ${DEV} /home/${TARGET_USER}/
-yum install -y rsync
+apt-get update
+apt-get install -y rsync
 rsync -aXS /tmp/home_copy/. /home/${TARGET_USER}/.
 
 
@@ -80,10 +72,10 @@ echo '${TARGET_USER}     ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
 echo 'Port 3456' >> /etc/ssh/sshd_config
 echo 'Port 22' >> /etc/ssh/sshd_config
 
-# necessary for semanage, VMs have secure linux
-yum install -y policycoreutils-python-utils
-# we need to enable the new port from semanage
-semanage port -a -t ssh_port_t -p tcp 3456
+# enable UFW and open the ports we need
+ufw allow 5432/tcp
+ufw allow 3456/tcp
+ufw --force enable
 
 # restart ssh service to be able to use the new port
 systemctl restart sshd
@@ -128,9 +120,20 @@ su --login ${TARGET_USER} <<'EOSU'
 EOSU
 
 find_private_ips() {
-  rpm --import https://packages.microsoft.com/keys/microsoft.asc
-  yum install -y https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm
-  yum install -y azure-cli
+
+  apt-get update
+  apt-get install -y ca-certificates curl apt-transport-https lsb-release gnupg
+
+  # add Microsoft GPG key
+  curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
+
+  # add Azure CLI repo
+  AZ_REPO=$(lsb_release -cs)
+  echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | tee /etc/apt/sources.list.d/azure-cli.list
+
+  # refresh package index and install Azure CLI
+  apt-get update
+  apt-get install -y azure-cli
 
   mkdir /home/log
   chmod og+rwx /home/log
@@ -144,7 +147,8 @@ find_private_ips() {
     echo $i >>$LOGS
   done
 
-  yum install -y hostname
+  apt-get install -y net-tools
+
   hostname -I >/home/log/ip_address
 
   export NODE_ID=$1
