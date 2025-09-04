@@ -4,8 +4,6 @@ on:
     branches:
     - pgbench/*
     - all_performance_test/*
-env:
-  RESULT_REPO_ACCESS_TOKEN: ${{ secrets.TEST_RESULTS_REPO_TOKEN }}
 jobs:
   pgbench:
     runs-on: ubuntu-latest
