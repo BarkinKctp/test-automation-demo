@@ -23,11 +23,11 @@ jobs:
           apt-get update
           apt-get install -y azure-cli
       - name: Login to Azure
-        run: |-
-          az login --service-principal \
-            -u ${{ fromJson(secrets.AZURE_CREDENTIALS)['clientId']}} \
-            -p ${{ fromJson(secrets.AZURE_CREDENTIALS)['clientSecret']}} \
-            --tenant ${{ fromJson(secrets.AZURE_CREDENTIALS)['tenantId']}}
+        uses: azure/login@v1
+        with:
+            client-id: 6701b0be-0797-4ed5-9b2b-b6b858a3198d
+            tenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+            enable-oidc: true
       - name: Delete resource group
         run: |-
             mkdir ~/.ssh
